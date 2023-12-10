@@ -6,6 +6,7 @@ $total = 0;
 $lineNumber = 0;
 $numbers = [];
 $symbols = [];
+
 foreach ($input as $line) {
     $number = '';
     $charCounter = 0;
@@ -13,15 +14,15 @@ foreach ($input as $line) {
     foreach (str_split(trim($line)) as $character) {
         if (is_numeric($character)) {
             $number .= $character;
+            if ($charCounter === strlen(trim($line)) - 1) {
+                $numbers = storeNumber($number, $numbers, $lineNumber, $numberCounter, $charCounter);
+            }
         } else {
             if ($character !== '.') {
                 $symbols[$lineNumber][] = $charCounter;
             }
             if ($number !== '') {
-                $numbers[$lineNumber][$numberCounter]['number'] = (int) $number;
-                $numbers[$lineNumber][$numberCounter]['start'] = $charCounter - strlen($number);
-                $numbers[$lineNumber][$numberCounter]['end'] = $charCounter - 1;
-
+                $numbers = storeNumber($number, $numbers, $lineNumber, $numberCounter, $charCounter);
                 $numberCounter++;
                 $number = '';
             }
@@ -36,7 +37,6 @@ foreach ($numbers as $lineNumber => $line) {
             foreach ($symbols[$lineNumber - 1] as $symbol) {
                 if ($number['start'] <= ($symbol + 1) && $number['end'] >= ($symbol - 1)) {
                     $total += $number['number'];
-//                    echo $number['number'] . PHP_EOL;
                     continue 2;
                 }
             }
@@ -46,7 +46,6 @@ foreach ($numbers as $lineNumber => $line) {
             foreach ($symbols[$lineNumber + 1] as $symbol) {
                 if ($number['start'] <= ($symbol + 1) && $number['end'] >= ($symbol - 1)) {
                     $total += $number['number'];
-//                    echo $number['number'] . PHP_EOL;
                     continue 2;
                 }
             }
@@ -56,13 +55,20 @@ foreach ($numbers as $lineNumber => $line) {
             foreach ($symbols[$lineNumber] as $symbol) {
                 if ($symbol === ($number['start'] - 1) || $symbol === ($number['end'] + 1)) {
                     $total += $number['number'];
-//                    echo $number['number'] . PHP_EOL;
                     continue 2;
                 }
             }
         }
-        echo $number['number'] . PHP_EOL;
     }
 }
+
+function storeNumber(string $number, array $numbers, int $lineNumber, int $numberCounter, mixed $charCounter): array
+{
+    $numbers[$lineNumber][$numberCounter]['number'] = (int)$number;
+    $numbers[$lineNumber][$numberCounter]['start'] = $charCounter - strlen($number);
+    $numbers[$lineNumber][$numberCounter]['end'] = $charCounter - 1;
+    return $numbers;
+}
+
 echo $total;
 
