@@ -5,7 +5,7 @@ $input = file('input3.txt');
 $total = 0;
 $lineNumber = 0;
 $numbers = [];
-$symbols = [];
+$gears = [];
 
 foreach ($input as $line) {
     $number = '';
@@ -18,8 +18,8 @@ foreach ($input as $line) {
                 $numbers = storeNumber($number, $numbers, $lineNumber, $numberCounter, $charCounter);
             }
         } else {
-            if ($character !== '.') {
-                $symbols[$lineNumber][] = $charCounter;
+            if ($character === '*') {
+                $gears[$lineNumber][] = $charCounter;
             }
             if ($number !== '') {
                 $numbers = storeNumber($number, $numbers, $lineNumber, $numberCounter, $charCounter);
@@ -31,33 +31,34 @@ foreach ($input as $line) {
     }
     $lineNumber++;
 }
-foreach ($numbers as $lineNumber => $line) {
-    foreach ($line as $number) {
-        if (isset($symbols[$lineNumber - 1])) {
-            foreach ($symbols[$lineNumber - 1] as $symbol) {
-                if ($number['start'] <= ($symbol + 1) && $number['end'] >= ($symbol - 1)) {
-                    $total += $number['number'];
-                    continue 2;
+foreach ($gears as $lineNumber => $line) {
+    foreach ($line as $gear) {
+        $foundNumbers = [];
+        if (isset($numbers[$lineNumber - 1])) {
+            foreach ($numbers[$lineNumber - 1] as $number) {
+                if ($number['start'] <= ($gear + 1) && $number['end'] >= ($gear - 1)) {
+                    $foundNumbers[] = $number['number'];
                 }
             }
         }
 
-        if (isset($symbols[$lineNumber + 1])) {
-            foreach ($symbols[$lineNumber + 1] as $symbol) {
-                if ($number['start'] <= ($symbol + 1) && $number['end'] >= ($symbol - 1)) {
-                    $total += $number['number'];
-                    continue 2;
+        if (isset($numbers[$lineNumber + 1])) {
+            foreach ($numbers[$lineNumber + 1] as $number) {
+                if ($number['start'] <= ($gear + 1) && $number['end'] >= ($gear - 1)) {
+                    $foundNumbers[] = $number['number'];
                 }
             }
         }
 
-        if (isset($symbols[$lineNumber])) {
-            foreach ($symbols[$lineNumber] as $symbol) {
-                if ($symbol === ($number['start'] - 1) || $symbol === ($number['end'] + 1)) {
-                    $total += $number['number'];
-                    continue 2;
+        if (isset($numbers[$lineNumber])) {
+            foreach ($numbers[$lineNumber] as $number) {
+                if ($gear === ($number['start'] - 1) || $gear === ($number['end'] + 1)) {
+                    $foundNumbers[] = $number['number'];
                 }
             }
+        }
+        if (count($foundNumbers) >= 2) {
+            $total += array_product($foundNumbers);
         }
     }
 }
