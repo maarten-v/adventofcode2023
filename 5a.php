@@ -26,7 +26,7 @@ foreach ($input as $line) {
     ];
 }
 
-$results = [];
+$nearest = PHP_INT_MAX;
 foreach ($seeds as $seed) {
     $result = $seed;
     foreach ($maps as $map) {
@@ -39,7 +39,9 @@ foreach ($seeds as $seed) {
             }
         }
     }
-    $results[] = $result;
+    if ($result < $nearest) {
+        $nearest = $result;
+    }
 }
 
-echo min($results);
+echo $nearest;
