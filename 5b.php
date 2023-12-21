@@ -27,7 +27,6 @@ foreach ($input as $line) {
         'sourceStart' => $values[1],
         'sourceEnd' => $values[1] + ($values[2] - 1),
         'difference' => $values[0] - $values[1],
-        'range' => $values[2],
     ];
 }
 $seedRanges['starts'] = [];
@@ -51,7 +50,6 @@ foreach ($inverseCategories as $key => $map) {
         $startMap['destinationEnd'] =  $map[0]['destinationStart'] - 1;
         $startMap['sourceStart'] = 0;
         $startMap['sourceEnd'] = $map[0]['destinationStart'] - 1;
-        $startMap['range'] = $map[0]['sourceStart'] - 1;
         $startMap['difference'] = 0;
         array_unshift($map, $startMap);
     }
@@ -60,7 +58,6 @@ foreach ($inverseCategories as $key => $map) {
     $endMap['destinationEnd'] =  PHP_INT_MAX;
     $endMap['sourceStart'] = end($map)['destinationEnd'] + 1;
     $endMap['sourceEnd'] = PHP_INT_MAX;
-    $endMap['range'] = PHP_INT_MAX;
     $endMap['difference'] = 0;
     $map[] = $endMap;
     $inverseCategories[$key] = $map;
@@ -77,10 +74,8 @@ foreach ($inverseCategories as $category) {
     foreach ($wantedDestinations as $wantedDestination) {
         $nextDestinationStart = $wantedDestination['start'];
         splitRanges($nextDestinationStart, $wantedDestination, $category, $splitWantedDestinations, $wantedSources);
-//        ray($splitWantedDestinations, $wantedSources);
     }
     $wantedDestinations = $wantedSources;
-    ray('counter', $counter);
     $counter++;
 }
 
