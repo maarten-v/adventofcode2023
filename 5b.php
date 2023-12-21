@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 /** @var string[] $input */
 $input = file('input5.txt');
 $maps = [];
@@ -24,6 +26,7 @@ foreach ($input as $line) {
         'destinationEnd' => $values[0] + $values[2] - 1,
         'sourceStart' => $values[1],
         'sourceEnd' => $values[1] + ($values[2] - 1),
+        'difference' => $values[0] - $values[1],
         'range' => $values[2],
     ];
 }
@@ -37,70 +40,90 @@ foreach ($seeds as $key => $seed) {
     }
 }
 
-$inverseMaps = array_reverse($maps);
-foreach ($inverseMaps as $key => $map) {
+$inverseCategories = array_reverse($maps);
+foreach ($inverseCategories as $key => $map) {
     usort($map, static function($a, $b) {
         return $a['destinationStart'] <=> $b['destinationStart'];
     });
     if ($map[0]['destinationStart'] > 0) {
         $startMap = [];
         $startMap['destinationStart'] = 0;
-        $startMap['destinationEnd'] =  $map[0]['sourceStart'] - 1;
+        $startMap['destinationEnd'] =  $map[0]['destinationStart'] - 1;
         $startMap['sourceStart'] = 0;
-        $startMap['sourceEnd'] = $map[0]['sourceStart'] - 1;
+        $startMap['sourceEnd'] = $map[0]['destinationStart'] - 1;
         $startMap['range'] = $map[0]['sourceStart'] - 1;
+        $startMap['difference'] = 0;
         array_unshift($map, $startMap);
     }
-    $inverseMaps[$key] = $map;
+    $endMap = [];
+    $endMap['destinationStart'] = end($map)['destinationEnd'] + 1;
+    $endMap['destinationEnd'] =  PHP_INT_MAX;
+    $endMap['sourceStart'] = end($map)['destinationEnd'] + 1;
+    $endMap['sourceEnd'] = PHP_INT_MAX;
+    $endMap['range'] = PHP_INT_MAX;
+    $endMap['difference'] = 0;
+    $map[] = $endMap;
+    $inverseCategories[$key] = $map;
 }
 
 $counter = 0;
-foreach ($inverseMaps as $map) {
+foreach ($inverseCategories as $category) {
     if ($counter === 0) {
-        $smallestRangeStart = $map[0]['sourceStart'];
-        $smallestRangeEnd = $map[0]['sourceEnd'];
-        echo $smallestRangeStart . ' ' . $smallestRangeEnd;
-    } else {
-        foreach ($map as $range) {
-            if ($range['destinationStart'] <= $smallestRangeStart) {
-                var_dump($range);
-                $smallestRangeStart = $range['destinationStart'];
-                if ($smallestRangeEnd > $range['sourceEnd']) {
-                    $smallestRangeEnd = $range['sourceEnd'];
-                } else {
-                    $smallestRangeEnd =
-                }
-                exit();
-            }
-        }
+        $wantedDestinations = [];
+        $wantedDestinations[] = ['start' => 0, 'end' => PHP_INT_MAX, 'difference' => 0];
     }
-    echo $counter . '  c' . PHP_EOL;
+    $splitWantedDestinations = [];
+    $wantedSources = [];
+    foreach ($wantedDestinations as $wantedDestination) {
+        $nextDestinationStart = $wantedDestination['start'];
+        splitRanges($nextDestinationStart, $wantedDestination, $category, $splitWantedDestinations, $wantedSources);
+//        ray($splitWantedDestinations, $wantedSources);
+    }
+    $wantedDestinations = $wantedSources;
+    ray('counter', $counter);
     $counter++;
 }
 
+function splitRanges(&$nextDestinationStart, $wantedDestination, $category, &$splitWantedDestinations, &$wantedSources): void
+{
+    foreach ($category as $range) {
+        if ($nextDestinationStart === PHP_INT_MAX) {
+            return;
+        }
+        if ($nextDestinationStart >= $range['destinationStart'] && $nextDestinationStart <= $range['destinationEnd']) {
+            if ($range['destinationEnd'] >= $wantedDestination['end']) {
+                $splitWantedDestinations[] = ['start' => $nextDestinationStart, 'end' => $wantedDestination['end'], 'difference' => $range['difference']];
+                $wantedSources[] = ['start' => $nextDestinationStart - $range['difference'], 'end' => $wantedDestination['end'] - $range['difference']];
+                $nextDestinationStart = ($wantedDestination['end'] === PHP_INT_MAX ? PHP_INT_MAX : $wantedDestination['end'] + 1);
+                return;
+            }
+            $splitWantedDestinations[] = ['start' => $nextDestinationStart, 'end' => $range['destinationEnd'], 'difference' => $range['difference']];
+            $wantedSources[] = ['start' => $nextDestinationStart - $range['difference'], 'end' => $range['destinationEnd'] - $range['difference']];
+            $nextDestinationStart = ($range['destinationEnd'] === PHP_INT_MAX ? $range['destinationEnd'] : $range['destinationEnd'] + 1);
+            splitRanges($nextDestinationStart, $wantedDestination, $category, $splitWantedDestinations, $wantedSources);
+            return;
+        }
+    }
+}
 
+foreach ($wantedSources as $wantedSource) {
+    foreach ($seedRanges['starts'] as $key => $seedRangeStart) {
+        if ($seedRangeStart <= $wantedSource['end'] && ($seedRanges['ranges'][$key] + $seedRangeStart) >= $wantedSource['start']) {
+            $nearestSource = $wantedSource['start'];
+            break 2;
+        }
+    }
+}
 
+echo 'nearest source: ' . $nearestSource . PHP_EOL;
 
+foreach ($maps as $map) {
+    foreach ($map as $range) {
+        if ($nearestSource <= $range['sourceEnd'] && $nearestSource >= $range['sourceStart']) {
+            $nearestSource += $range['difference'];
+            break;
+        }
+    }
+}
 
-//$nearest = PHP_INT_MAX;
-//foreach ($seedRanges['starts'] as $key => $start) {
-//    for ($i = $start; $i <= ($start + $seedRanges['ranges'][$key]); $i++) {
-//        echo $i . ' ' . ($start + $seedRanges['ranges'][$key]) . PHP_EOL;
-//        $result = $i;
-//        foreach ($maps as $map) {
-//            $foundInMap = false;
-//            foreach ($map as $range) {
-//                if ($result <= ($range['source'] + $range['range']) && $result >= $range['source']) {
-//                    $result = $range['destination'] + ($result - $range['source']);
-//                    $foundInMap = true;
-//                    break;
-//                }
-//            }
-//        }
-//        if ($result < $nearest) {
-//            $nearest = $result;
-//        }
-//    }
-//}
-//
-//echo $nearest;
+echo 'nearest dest: ' . $nearestSource;

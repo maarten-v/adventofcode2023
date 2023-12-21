@@ -1,0 +1,6 @@
+{
+    "require": {
+        "spatie/ray": "^1.40",
+        "symfony/var-dumper": "^6.4"
+    }
+}

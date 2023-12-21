@@ -30,11 +30,9 @@ $nearest = PHP_INT_MAX;
 foreach ($seeds as $seed) {
     $result = $seed;
     foreach ($maps as $map) {
-        $foundInMap = false;
         foreach ($map as $range) {
             if ($result <= ($range['source'] + $range['range']) && $result >= $range['source']) {
                 $result = $range['destination'] + ($result - $range['source']);
-                $foundInMap = true;
                 break;
             }
         }
