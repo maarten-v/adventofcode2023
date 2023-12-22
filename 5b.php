@@ -2,6 +2,8 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+$startTime = microtime(true);
+
 /** @var string[] $input */
 $input = file('input5.txt');
 $maps = [];
@@ -69,17 +71,16 @@ foreach ($inverseCategories as $category) {
         $wantedDestinations = [];
         $wantedDestinations[] = ['start' => 0, 'end' => PHP_INT_MAX, 'difference' => 0];
     }
-    $splitWantedDestinations = [];
     $wantedSources = [];
     foreach ($wantedDestinations as $wantedDestination) {
         $nextDestinationStart = $wantedDestination['start'];
-        splitRanges($nextDestinationStart, $wantedDestination, $category, $splitWantedDestinations, $wantedSources);
+        splitRanges($nextDestinationStart, $wantedDestination, $category, $wantedSources);
     }
     $wantedDestinations = $wantedSources;
     $counter++;
 }
 
-function splitRanges(&$nextDestinationStart, $wantedDestination, $category, &$splitWantedDestinations, &$wantedSources): void
+function splitRanges(&$nextDestinationStart, $wantedDestination, $category, &$wantedSources): void
 {
     foreach ($category as $range) {
         if ($nextDestinationStart === PHP_INT_MAX) {
@@ -87,15 +88,13 @@ function splitRanges(&$nextDestinationStart, $wantedDestination, $category, &$sp
         }
         if ($nextDestinationStart >= $range['destinationStart'] && $nextDestinationStart <= $range['destinationEnd']) {
             if ($range['destinationEnd'] >= $wantedDestination['end']) {
-                $splitWantedDestinations[] = ['start' => $nextDestinationStart, 'end' => $wantedDestination['end'], 'difference' => $range['difference']];
                 $wantedSources[] = ['start' => $nextDestinationStart - $range['difference'], 'end' => $wantedDestination['end'] - $range['difference']];
                 $nextDestinationStart = ($wantedDestination['end'] === PHP_INT_MAX ? PHP_INT_MAX : $wantedDestination['end'] + 1);
                 return;
             }
-            $splitWantedDestinations[] = ['start' => $nextDestinationStart, 'end' => $range['destinationEnd'], 'difference' => $range['difference']];
             $wantedSources[] = ['start' => $nextDestinationStart - $range['difference'], 'end' => $range['destinationEnd'] - $range['difference']];
             $nextDestinationStart = ($range['destinationEnd'] === PHP_INT_MAX ? $range['destinationEnd'] : $range['destinationEnd'] + 1);
-            splitRanges($nextDestinationStart, $wantedDestination, $category, $splitWantedDestinations, $wantedSources);
+            splitRanges($nextDestinationStart, $wantedDestination, $category, $wantedSources);
             return;
         }
     }
@@ -121,4 +120,8 @@ foreach ($maps as $map) {
     }
 }
 
-echo 'nearest dest: ' . $nearestSource;
+echo 'nearest dest: ' . $nearestSource . PHP_EOL;
+
+$endTime = microtime(true);
+$duration = $endTime - $startTime;
+echo "Execution time: " . $duration . " seconds";
