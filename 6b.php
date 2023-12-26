@@ -9,8 +9,11 @@ $input = file('input6.txt');
 $time = explode(':', str_replace(' ', '', trim($input[0])))[1];
 $distanceToBeat = explode(':', str_replace(' ', '', trim($input[1])))[1];
 
-$start = (1 + sqrt(1 - 4 * ($time * - $distanceToBeat))) / 2 * $time;
-echo $start;
+$start = (-$time + sqrt($time**2 - 4 *  $distanceToBeat)) / -2;
+$end = (-$time - sqrt($time**2 - 4 *  $distanceToBeat)) / -2;
+$start = ceil($start);
+$end = floor($end);
+echo $end - $start + 1 . PHP_EOL;
 
 
 
