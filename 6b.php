@@ -14,7 +14,9 @@ $end = (-$time - sqrt($time**2 - 4 *  $distanceToBeat)) / -2;
 $start = ceil($start);
 $end = floor($end);
 echo $end - $start + 1 . PHP_EOL;
-
+$endTime = microtime(true);
+$duration = $endTime - $startTime;
+echo "Execution time: " . $duration . " seconds";
 
 
 // wortelformule
