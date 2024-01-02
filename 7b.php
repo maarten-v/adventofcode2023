@@ -22,14 +22,18 @@ foreach ($hands as $key => $hand) {
     $fiveOfAKind = true;
     $lettersArray = [];
     foreach ($letters as $letter) {
-       if (!isset($lettersArray[(string) $letter])) {
-           $lettersArray[(string) $letter] = 0;
-       }
-       $lettersArray[(string) $letter]++;
+        if ($letter === 'J') {
+            continue;
+        }
+        if (!isset($lettersArray[(string) $letter])) {
+            $lettersArray[(string) $letter] = 0;
+        }
+        $lettersArray[(string) $letter]++;
     }
     arsort($lettersArray);
     $amounts = implode('', $lettersArray);
     $hands[$key]['rank'] = match($amounts) {
+        // no jokers
         '5' => 1,
         '41' => 2,
         '32' => 3,
@@ -37,9 +41,30 @@ foreach ($hands as $key => $hand) {
         '221' => 5,
         '2111' => 6,
         '11111' => 7,
+
+        // 1 joker
+        '4' => 1,
+        '31' => 2,
+        '22' => 3,
+        '211' => 4,
+        '1111' => 6,
+
+        // 2 jokers
+        '3' => 1,
+        '21' => 2,
+        '111' => 4,
+
+        // 3 jokers
+        '2' => 1,
+        '11' => 2,
+
+        // 4 jokers
+        '1' => 1,
+
+        // 5 jokers
+        '' => 1,
     };
 }
-
 usort($hands, static function ($a, $b) {
     if ($a['rank'] > $b['rank']) {
         return -1;
@@ -73,7 +98,7 @@ function convertToInt($card): int
         'A' => 14,
         'K' => 13,
         'Q' => 12,
-        'J' => 11,
+        'J' => 1,
         'T' => 10,
         default => (int) $card,
     };

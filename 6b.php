@@ -17,9 +17,3 @@ echo $end - $start + 1 . PHP_EOL;
 $endTime = microtime(true);
 $duration = $endTime - $startTime;
 echo "Execution time: " . $duration . " seconds";
-
-
-// wortelformule
-// a = tijd
-// b = -1
-// c = - timetobeat
